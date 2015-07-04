@@ -9,10 +9,8 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -71,13 +69,11 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 for (ScanResult result:results) {
                     Map<String, String> item = new HashMap();
                     item.put("ssid", result.SSID);
-                    item.put("info", wifi.calculateSignalLevel(result.level, 100) + "%, CH" +  String.valueOf(toChannel(result.frequency)));
+                    item.put("info", WifiManager.calculateSignalLevel(result.level, 100) + "%, CH" +  String.valueOf(toChannel(result.frequency)));
                     item.put("other", String.valueOf(result));
                     arraylist.add(item);
                     adapter.notifyDataSetChanged();
                 }
-
-                //onClick(null);
             }
         };
 
