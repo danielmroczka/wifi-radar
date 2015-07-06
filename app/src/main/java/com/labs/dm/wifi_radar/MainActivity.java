@@ -7,11 +7,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -21,6 +24,7 @@ import android.widget.ToggleButton;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,7 +45,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     private NotificationManager notificationManager;
     private final Handler handler = new Handler();
     private Runnable runnableCode;
-
+    private LocationManager locationManager;
+    private DBManager db;
     /* Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,11 +89,15 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                     item.put("bssid", result.BSSID);
                     list.add(item);
                     ssid.add(result.SSID);
-                    System.out.println(result.BSSID);
+                    //System.out.println(result.BSSID);
+                    //System.out.println(getLastBestLocation());
+                    db.add(result.SSID, result.level, getLastBestLocation().getLatitude(), getLastBestLocation().getLongitude(), new Date().getTime());
                 }
                 setTitle("Found " + list.size() + "/" + ssid.size());
                 adapter.notifyDataSetChanged();
             }
+
+
         };
 
         runnableCode = new Runnable() {
@@ -121,7 +130,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 contentText, contentIntent);
 
         notificationManager.notify(NOTIFICATION_EX, notification);
-
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        db = new DBManager(this);
     }
 
     public void onClick(View view) {
@@ -140,6 +150,12 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
     private int toChannel(int freq) {
         if (freq >= 2412 && freq <= 2484) {
             return (freq - 2412) / 5 + 1;
@@ -147,6 +163,29 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
             return (freq - 5170) / 5 + 34;
         } else {
             return -1;
+        }
+    }
+
+    private Location getLastBestLocation() {
+        Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location locationNet = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        long GPSLocationTime = 0;
+        if (locationGPS != null) {
+            GPSLocationTime = locationGPS.getTime();
+        }
+
+        long NetLocationTime = 0;
+
+        if (locationNet != null) {
+            NetLocationTime = locationNet.getTime();
+        }
+        //System.out.println("Date GPS:" + new Date(GPSLocationTime));
+        //System.out.println("Date Net:" + new Date(NetLocationTime));
+        if (GPSLocationTime > NetLocationTime) {
+            return locationGPS;
+        } else {
+            return locationNet;
         }
     }
 }
