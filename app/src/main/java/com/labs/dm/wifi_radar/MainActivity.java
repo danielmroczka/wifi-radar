@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -47,6 +48,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     private Runnable runnableCode;
     private LocationManager locationManager;
     private DBManager db;
+    private Map<String, Position> map = new HashMap<>();
+
     /* Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -67,7 +70,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
             @Override
             public void onReceive(Context c, Intent intent) {
                 results = wifi.getScanResults();
-
                 if (results == null) {
                     return;
                 }
@@ -89,9 +91,20 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                     item.put("bssid", result.BSSID);
                     list.add(item);
                     ssid.add(result.SSID);
-                    //System.out.println(result.BSSID);
-                    //System.out.println(getLastBestLocation());
-                    db.add(result.SSID, result.level, getLastBestLocation().getLatitude(), getLastBestLocation().getLongitude(), new Date().getTime());
+
+                    Location location = getLastBestLocation();
+                    location.getAccuracy();
+                    Position current = new Position(location.getLatitude(), location.getLongitude());
+
+                    if (map.containsKey(result.BSSID)) {
+                        Position pos = map.get(result.BSSID);
+                        if (Math.abs(GeoUtil.calculateDistance(current, pos)) > 1.0d) {
+                            addSignalItem(result, location, current);
+                        }
+                    } else {
+                        addSignalItem(result, location, current);
+                    }
+
                 }
                 setTitle("Found " + list.size() + "/" + ssid.size());
                 adapter.notifyDataSetChanged();
@@ -120,7 +133,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         Notification notification = new Notification(icon, tickerText, when);
 
         Context context = getApplicationContext();
-        CharSequence contentTitle = "My notification";
+        CharSequence contentTitle = "Wifi Radar";
         CharSequence contentText = "Hello World!";
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent contentIntent = PendingIntent.getActivity(this,
@@ -134,11 +147,32 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         db = new DBManager(this);
     }
 
+    private void addSignalItem(ScanResult result, Location location, Position current) {
+        long id = db.getIdNetwork(result.BSSID);
+        if (id == -1) {
+            id = db.addNetwork(result.SSID, result.BSSID);
+        }
+        db.addSignal(id, result.level, current.getLatitude(), current.getLongitude(), location.getAccuracy(), new Date().getTime());
+        map.put(result.BSSID, current);
+    }
+
     public void onClick(View view) {
         if (!tgl.isChecked()) {
             handler.removeCallbacks(runnableCode);
         } else {
             handler.post(runnableCode);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
@@ -169,7 +203,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     private Location getLastBestLocation() {
         Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         Location locationNet = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
         long GPSLocationTime = 0;
         if (locationGPS != null) {
             GPSLocationTime = locationGPS.getTime();
@@ -180,8 +213,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         if (locationNet != null) {
             NetLocationTime = locationNet.getTime();
         }
-        //System.out.println("Date GPS:" + new Date(GPSLocationTime));
-        //System.out.println("Date Net:" + new Date(NetLocationTime));
         if (GPSLocationTime > NetLocationTime) {
             return locationGPS;
         } else {
