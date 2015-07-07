@@ -60,7 +60,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         lv = (ListView) findViewById(R.id.listView);
         wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         if (!wifi.isWifiEnabled()) {
-            Toast.makeText(getApplicationContext(), "Wifi is disabled. Please switch on!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Wifi is disabled. Switching on...", Toast.LENGTH_LONG).show();
             wifi.setWifiEnabled(true);
         }
         this.adapter = new SimpleAdapter(this, list, R.layout.row, new String[]{"ssid", "info", "other"}, new int[]{R.id.ssid, R.id.info, R.id.other});
@@ -90,7 +90,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                     item.put("other", String.valueOf(result));
                     item.put("bssid", result.BSSID);
                     list.add(item);
-                    ssid.add(result.SSID);
+                    ssid.add(result.BSSID);
 
                     Location location = getLastBestLocation();
                     location.getAccuracy();
@@ -169,7 +169,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         switch (item.getItemId()) {
             case R.id.action_settings:
                 Intent intent = new Intent(this, SettingsActivity.class);
-                startActivity(intent);
+                //startActivity(intent);
+                startActivityForResult(intent, 0);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -213,7 +214,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         if (locationNet != null) {
             NetLocationTime = locationNet.getTime();
         }
-        if (GPSLocationTime > NetLocationTime) {
+        if (GPSLocationTime >= NetLocationTime) {
             return locationGPS;
         } else {
             return locationNet;
