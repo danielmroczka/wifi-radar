@@ -17,8 +17,19 @@ import java.util.List;
  */
 public class DBManager extends SQLiteOpenHelper {
 
+    private final SQLiteDatabase writableDatabase;
+    private final SQLiteDatabase readableDatabase;
+
     public DBManager(Context context) {
         super(context, "wifi3.db", null, 1);
+        writableDatabase = getWritableDatabase();
+        readableDatabase = getReadableDatabase();
+    }
+
+    @Override
+    public synchronized void close() {
+        writableDatabase.close();
+        readableDatabase.close();
     }
 
     @Override
@@ -42,7 +53,6 @@ public class DBManager extends SQLiteOpenHelper {
      * @return rowid new created item or -1 if item already exist
      */
     public long addNetwork(String ssid, String bssid, int channel, String type) {
-        SQLiteDatabase db = getWritableDatabase();
         ContentValues content = new ContentValues();
         content.put("ssid", ssid);
         content.put("bssid", bssid);
@@ -52,9 +62,8 @@ public class DBManager extends SQLiteOpenHelper {
         long rowId;
 
         try {
-            rowId = db.insertOrThrow("network", null, content);
+            rowId = writableDatabase.insertOrThrow("network", null, content);
         } finally {
-            db.close();
         }
 
         return rowId;
@@ -67,21 +76,18 @@ public class DBManager extends SQLiteOpenHelper {
      * @return RowId or -1
      */
     public long getIdNetwork(String bssid) {
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor c = null;
+        Cursor cursor = null;
         long id = -1;
         try {
-            c = db.rawQuery("SELECT id FROM network where bssid='" + bssid + "'", null);
-            c.moveToFirst();
-            if (c.getCount() > 0) {
-                id = c.getLong(0);
+            cursor = readableDatabase.rawQuery("SELECT id FROM network where bssid='" + bssid + "'", null);
+            cursor.moveToFirst();
+            if (cursor.getCount() > 0) {
+                id = cursor.getLong(0);
             }
         } finally {
-            if (c != null) {
-                c.close();
+            if (cursor != null) {
+                cursor.close();
             }
-            db.close();
-
         }
 
         return id;
@@ -89,7 +95,6 @@ public class DBManager extends SQLiteOpenHelper {
 
     public long addSignal(long id_network, int level, double longitude, double latitude, float accuracy, long timestamp) {
         System.out.println("Add Signal " + id_network);
-        SQLiteDatabase db = getWritableDatabase();
         ContentValues content = new ContentValues();
         content.put("id_network", id_network);
         content.put("level", level);
@@ -97,29 +102,27 @@ public class DBManager extends SQLiteOpenHelper {
         content.put("latitude", latitude);
         content.put("accuracy", accuracy);
         content.put("timestamp", timestamp);
-        long res = db.insertOrThrow("signal", null, content);
-        db.close();
-        return res;
+        return writableDatabase.insertOrThrow("signal", null, content);
     }
 
     public List<Position> getPositions(long id_network) {
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT longitude, latitude FROM SIGNAL where id_network=" + id_network, null);
-        c.moveToFirst();
-        List<Position> list = new ArrayList<>(c.getCount());
-        if (c.getCount() > 0) {
-            while (!c.isLast()) {
-                Position p = new Position(c.getDouble(0), c.getDouble(1));
-                list.add(p);
-                c.move(1);
+        List<Position> list;
+        Cursor cursor = null;
+        try {
+            cursor = readableDatabase.rawQuery("SELECT longitude, latitude FROM SIGNAL where id_network=" + id_network, null);
+            list = new ArrayList<>(cursor.getCount());
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                while (!cursor.isLast()) {
+                    Position p = new Position(cursor.getDouble(0), cursor.getDouble(1));
+                    list.add(p);
+                    cursor.moveToNext();
+                }
             }
+        } finally {
+            cursor.close();
         }
-
-        c.close();
-        db.close();
-
         return list;
-
     }
 
 }
