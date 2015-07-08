@@ -1,4 +1,4 @@
-language: java
-script: gradle
+language: android
+script: gradle wrapper
 before_install:
  - chmod +x gradlew
