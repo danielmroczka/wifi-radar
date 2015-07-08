@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.Date;
+
 /**
  * Created by daniel on 2015-07-06.
  */
@@ -42,6 +44,7 @@ public class DBManager extends SQLiteOpenHelper {
         content.put("bssid", bssid);
         content.put("channel", channel);
         content.put("type", type);
+        content.put("added", new Date().toString());
         long rowId;
 
         try {

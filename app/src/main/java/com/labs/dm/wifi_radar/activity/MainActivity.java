@@ -117,6 +117,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
                 }
                 setTitle("Found " + list.size() + "/" + ssid.size());
+                notification(getTitle());
                 adapter.notifyDataSetChanged();
             }
 
@@ -140,25 +141,41 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         CharSequence tickerText = "Wifi";
         long when = System.currentTimeMillis();
 
-        Notification notification = new Notification(icon, tickerText, when);
-
-        Context context = getApplicationContext();
-        CharSequence contentTitle = "Wifi Radar";
-        CharSequence contentText = "Hello World!";
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, 0);
-
-        notification.setLatestEventInfo(context, contentTitle,
-                contentText, contentIntent);
-
-        notificationManager.notify(NOTIFICATION_EX, notification);
+        notification(icon, tickerText, when);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         db = new DBManager(this);
         loadProps();
 
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, props.getNetMinTime(), props.getNetMinDist(), this);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, props.getGpsMinTime(), props.getGpsMinDist(), this);
+    }
+
+    Notification notification;
+    PendingIntent contentIntent;
+    CharSequence contentTitle = "Wifi Radar";
+    CharSequence contentText;
+
+    private void notification(int icon, CharSequence tickerText, long when) {
+        notification = new Notification(icon, tickerText, when);
+
+        Context context = getApplicationContext();
+        contentText = "Hello World!";
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        contentIntent = PendingIntent.getActivity(this,
+                0, notificationIntent, 0);
+
+        notification.setLatestEventInfo(context, contentTitle,
+                contentText, contentIntent);
+
+        notificationManager.notify(NOTIFICATION_EX, notification);
+    }
+
+    private void notification(CharSequence contentText) {
+        notification.setLatestEventInfo(getApplicationContext(), contentTitle,
+                contentText, contentIntent);
+
+        notificationManager.notify(NOTIFICATION_EX, notification);
+
     }
 
     private void loadProps() {
@@ -171,6 +188,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         if (id == -1) {
             id = db.addNetwork(result.SSID, result.BSSID, Utils.toChannel(result.frequency), result.capabilities);
         }
+
+
         db.addSignal(id, result.level, current.getLatitude(), current.getLongitude(), location.getAccuracy(), new Date().getTime());
         map.put(result.BSSID, current);
     }
