@@ -6,7 +6,11 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.labs.dm.wifi_radar.pojo.Position;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by daniel on 2015-07-06.
@@ -14,7 +18,7 @@ import java.util.Date;
 public class DBManager extends SQLiteOpenHelper {
 
     public DBManager(Context context) {
-        super(context, "wifi2.db", null, 1);
+        super(context, "wifi3.db", null, 1);
     }
 
     @Override
@@ -93,7 +97,29 @@ public class DBManager extends SQLiteOpenHelper {
         content.put("latitude", latitude);
         content.put("accuracy", accuracy);
         content.put("timestamp", timestamp);
-        return db.insertOrThrow("signal", null, content);
+        long res = db.insertOrThrow("signal", null, content);
+        db.close();
+        return res;
+    }
+
+    public List<Position> getPositions(long id_network) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT longitude, latitude FROM SIGNAL where id_network=" + id_network, null);
+        c.moveToFirst();
+        List<Position> list = new ArrayList<>(c.getCount());
+        if (c.getCount() > 0) {
+            while (!c.isLast()) {
+                Position p = new Position(c.getDouble(0), c.getDouble(1));
+                list.add(p);
+                c.move(1);
+            }
+        }
+
+        c.close();
+        db.close();
+
+        return list;
+
     }
 
 }

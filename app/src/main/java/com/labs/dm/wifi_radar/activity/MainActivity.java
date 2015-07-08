@@ -202,8 +202,16 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         }
 
 
-        db.addSignal(id, result.level, current.getLatitude(), current.getLongitude(), location.getAccuracy(), new Date().getTime());
+        List<Position> pos = db.getPositions(id);
         map.put(result.BSSID, current);
+
+        for (Position p : pos) {
+            if (Utils.calculateDistance(p, current) < 5.0d) {
+                return;
+            }
+        }
+
+        db.addSignal(id, result.level, current.getLatitude(), current.getLongitude(), location.getAccuracy(), new Date().getTime());
     }
 
     public void onClick(View view) {
