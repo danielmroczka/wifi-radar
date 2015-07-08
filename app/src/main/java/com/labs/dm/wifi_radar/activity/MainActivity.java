@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -59,6 +60,16 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     private final Map<String, Position> map = new HashMap<>();
     private MyProperties props;
     private Location location;
+    private boolean switchedOnWifi;
+
+    @Override
+    protected void onDestroy() {
+        if (switchedOnWifi) {
+            wifi.setWifiEnabled(false);
+            Log.i("", "Switch off WIFI");
+        }
+        super.onDestroy();
+    }
 
     /* Called when the activity is first created. */
     @Override
@@ -72,6 +83,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         if (!wifi.isWifiEnabled()) {
             Toast.makeText(getApplicationContext(), "Wifi is disabled. Switching on...", Toast.LENGTH_LONG).show();
             wifi.setWifiEnabled(true);
+            switchedOnWifi = true;
         }
         this.adapter = new SimpleAdapter(this, list, R.layout.row, new String[]{"ssid", "info", "other"}, new int[]{R.id.ssid, R.id.info, R.id.other});
         lv.setAdapter(this.adapter);
