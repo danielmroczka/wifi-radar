@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:defaultValue="5"
+        android:inputType="number"
+        android:key="scan.interval"
+        android:summary="Please provide scan interval in seconds"
+        android:title="Scan Interval"></EditTextPreference>
+    <EditTextPreference
+        android:defaultValue="1"
+        android:inputType="number"
+        android:key="gps.minTime"
+        android:summary="Please provide GPS minTime"
+        android:title="GPS Min Time"></EditTextPreference>
+    <EditTextPreference
+        android:defaultValue="1"
+        android:inputType="numberDecimal"
+        android:key="gps.minDist"
+        android:summary="Please provide GPS minTime"
+        android:title="GPS Min Distance"></EditTextPreference>
+    <EditTextPreference
+        android:defaultValue="30"
+        android:inputType="number"
+        android:key="net.minTime"
+        android:summary="Please provide Network minTime"
+        android:title="Network Min Time"></EditTextPreference>
+    <EditTextPreference
+        android:defaultValue="10"
+        android:inputType="numberDecimal"
+        android:key="net.minDist"
+        android:summary="Please provide Network minDistance"
+        android:title="Network Min Distance"></EditTextPreference>
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="applicationUpdates"
+        android:summary="This option if selected will allow the application to check for latest versions."
+        android:title="Application Updates" />
+    <ListPreference
+        android:defaultValue="1"
+        android:entries="@array/listArray"
+        android:entryValues="@array/listValues"
+        android:key="downloadType"
+        android:summary="Select the kind of data that you would like to download"
+        android:title="Download Details" />
+</PreferenceScreen>

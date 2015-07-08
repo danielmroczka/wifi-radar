@@ -1,4 +1,4 @@
-package com.labs.dm.wifi_radar;
+package com.labs.dm.wifi_radar.activity;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -8,11 +8,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +23,12 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import com.labs.dm.wifi_radar.R;
+import com.labs.dm.wifi_radar.db.DBManager;
+import com.labs.dm.wifi_radar.pojo.MyProperties;
+import com.labs.dm.wifi_radar.pojo.Position;
+import com.labs.dm.wifi_radar.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,23 +40,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class MainActivity extends ActionBarActivity implements View.OnClickListener {
+public class MainActivity extends ActionBarActivity implements View.OnClickListener, LocationListener {
+    private static final int SETTINGS_CODE = 1;
+    private static final int NOTIFICATION_EX = 1;
+    private final Handler handler = new Handler();
     private WifiManager wifi;
     private ListView lv;
     private ToggleButton tgl;
     private List<ScanResult> results;
     private Set<String> ssid = new HashSet<>();
-
     private List<Map<String, String>> list = new ArrayList();
     private SimpleAdapter adapter;
     private BroadcastReceiver broadcastReceiver;
-    private static final int NOTIFICATION_EX = 1;
     private NotificationManager notificationManager;
-    private final Handler handler = new Handler();
     private Runnable runnableCode;
     private LocationManager locationManager;
     private DBManager db;
     private Map<String, Position> map = new HashMap<>();
+    private MyProperties props;
+    private Location location;
 
     /* Called when the activity is first created. */
     @Override
@@ -86,19 +96,19 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 for (ScanResult result : results) {
                     Map<String, String> item = new HashMap();
                     item.put("ssid", result.SSID);
-                    item.put("info", WifiManager.calculateSignalLevel(result.level, 100) + "%, ch" + String.valueOf(toChannel(result.frequency)));
-                    item.put("other", String.valueOf(result));
+                    item.put("info", WifiManager.calculateSignalLevel(result.level, 100) + "%, ch" + String.valueOf(Utils.toChannel(result.frequency)));
+                    item.put("other", result.capabilities);
                     item.put("bssid", result.BSSID);
                     list.add(item);
                     ssid.add(result.BSSID);
 
                     Location location = getLastBestLocation();
-                    location.getAccuracy();
+
                     Position current = new Position(location.getLatitude(), location.getLongitude());
 
                     if (map.containsKey(result.BSSID)) {
                         Position pos = map.get(result.BSSID);
-                        if (Math.abs(GeoUtil.calculateDistance(current, pos)) > 1.0d) {
+                        if (Math.abs(Utils.calculateDistance(current, pos)) > 1.0d) {
                             addSignalItem(result, location, current);
                         }
                     } else {
@@ -117,7 +127,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
             @Override
             public void run() {
                 wifi.startScan();
-                handler.postDelayed(this, 5000);
+                handler.postDelayed(this, props.getScanInterval());
             }
         };
 
@@ -145,12 +155,21 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         notificationManager.notify(NOTIFICATION_EX, notification);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         db = new DBManager(this);
+        loadProps();
+
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, props.getNetMinTime(), props.getNetMinDist(), this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, props.getGpsMinTime(), props.getGpsMinDist(), this);
+    }
+
+    private void loadProps() {
+        props = new MyProperties();
+        props.load(PreferenceManager.getDefaultSharedPreferences(getBaseContext()));
     }
 
     private void addSignalItem(ScanResult result, Location location, Position current) {
         long id = db.getIdNetwork(result.BSSID);
         if (id == -1) {
-            id = db.addNetwork(result.SSID, result.BSSID);
+            id = db.addNetwork(result.SSID, result.BSSID, Utils.toChannel(result.frequency), result.capabilities);
         }
         db.addSignal(id, result.level, current.getLatitude(), current.getLongitude(), location.getAccuracy(), new Date().getTime());
         map.put(result.BSSID, current);
@@ -169,11 +188,18 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         switch (item.getItemId()) {
             case R.id.action_settings:
                 Intent intent = new Intent(this, SettingsActivity.class);
-                //startActivity(intent);
-                startActivityForResult(intent, 0);
+                startActivityForResult(intent, SETTINGS_CODE);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == SETTINGS_CODE) {
+            if (resultCode == RESULT_OK) {
+                loadProps();
+            }
         }
     }
 
@@ -191,33 +217,46 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         return true;
     }
 
-    private int toChannel(int freq) {
-        if (freq >= 2412 && freq <= 2484) {
-            return (freq - 2412) / 5 + 1;
-        } else if (freq >= 5170 && freq <= 5825) {
-            return (freq - 5170) / 5 + 34;
-        } else {
-            return -1;
-        }
-    }
 
     private Location getLastBestLocation() {
         Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         Location locationNet = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        long GPSLocationTime = 0;
+
+        long gpsTime = 0;
         if (locationGPS != null) {
-            GPSLocationTime = locationGPS.getTime();
+            gpsTime = locationGPS.getTime();
         }
 
-        long NetLocationTime = 0;
+        long networkTime = 0;
 
         if (locationNet != null) {
-            NetLocationTime = locationNet.getTime();
+            networkTime = locationNet.getTime();
         }
-        if (GPSLocationTime >= NetLocationTime) {
-            return locationGPS;
-        } else {
+        if ((networkTime - gpsTime) > 60000) {
             return locationNet;
+        } else {
+            return locationGPS;
         }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        this.location = location;
+        System.out.println("GPS: Location Changed" + location);
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        System.out.println("GPS: Status Changed" + status);
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        System.out.println("GPS: Enabled");
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        System.out.println("GPS: Disabled");
     }
 }

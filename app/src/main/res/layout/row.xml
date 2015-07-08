@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
     <TextView
-        android:layout_width="167dp"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Large Text"
@@ -10,7 +10,10 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:autoText="false"
+        android:layout_toLeftOf="@+id/info"
+        android:layout_toStartOf="@+id/info" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -23,8 +26,6 @@
         android:layout_alignBottom="@+id/ssid"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@+id/ssid"
-        android:layout_toEndOf="@+id/ssid"
         android:layout_alignParentTop="true" />
 
     <TextView

@@ -1,4 +1,4 @@
-package com.labs.dm.wifi_radar;
+package com.labs.dm.wifi_radar.db;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -12,12 +12,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DBManager extends SQLiteOpenHelper {
 
     public DBManager(Context context) {
-        super(context, "wifi.db", null, 1);
+        super(context, "wifi2.db", null, 1);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table network(id INTEGER PRIMARY KEY, ssid TEXT, bssid TEXT UNIQUE,added DATETIME CURRENT_TIMESTAMP )");
+        db.execSQL("create table network(id INTEGER PRIMARY KEY, ssid TEXT, bssid TEXT UNIQUE, channel INTEGER, type TEXT, added DATETIME CURRENT_TIMESTAMP )");
         db.execSQL("create table signal(id INTEGER PRIMARY KEY, id_network INTEGER, level INTEGER, longitude DOUB, latitude DOUB, accuracy NUMERIC, timestamp NUMERIC, FOREIGN KEY(id_network) REFERENCES network(id))");
         db.execSQL("create unique index network_bssid on network(bssid)");
         db.execSQL("create view VNETWORKS as select n.ssid, max(s.level) from network n, signal s where n.id = s.id_network group by n.ssid");
@@ -35,12 +35,13 @@ public class DBManager extends SQLiteOpenHelper {
      * @param bssid
      * @return rowid new created item or -1 if item already exist
      */
-    public long addNetwork(String ssid, String bssid) {
+    public long addNetwork(String ssid, String bssid, int channel, String type) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues content = new ContentValues();
         content.put("ssid", ssid);
         content.put("bssid", bssid);
-
+        content.put("channel", channel);
+        content.put("type", type);
         long rowId;
 
         try {
