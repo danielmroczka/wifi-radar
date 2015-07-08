@@ -6,7 +6,7 @@ import com.labs.dm.wifi_radar.pojo.Position;
  * Created by daniel on 2015-07-07.
  */
 public class Utils {
-    public static final int MEAN_EARTH_RADIUS = 6371000;
+    private static final int MEAN_EARTH_RADIUS = 6371000;
 
     /**
      * @param src

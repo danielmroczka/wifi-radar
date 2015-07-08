@@ -7,11 +7,11 @@ import android.content.SharedPreferences;
  */
 public class MyProperties {
 
-    public static final String SCAN_INTERVAL = "scan.interval";
-    public static final String GPS_MIN_TIME = "gps.minTime";
-    public static final String GPS_MIN_DIST = "gps.minDist";
-    public static final String NET_MIN_TIME = "net.minTime";
-    public static final String NET_MIN_DIST = "net.minDist";
+    private static final String SCAN_INTERVAL = "scan.interval";
+    private static final String GPS_MIN_TIME = "gps.minTime";
+    private static final String GPS_MIN_DIST = "gps.minDist";
+    private static final String NET_MIN_TIME = "net.minTime";
+    private static final String NET_MIN_DIST = "net.minDist";
 
     private int scanInterval;
     private int gpsMinTime;
@@ -31,7 +31,7 @@ public class MyProperties {
         return scanInterval;
     }
 
-    public void setScanInterval(int scanInterval) {
+    private void setScanInterval(int scanInterval) {
         this.scanInterval = scanInterval;
     }
 
@@ -39,7 +39,7 @@ public class MyProperties {
         return gpsMinTime;
     }
 
-    public void setGpsMinTime(int gpsMinTime) {
+    private void setGpsMinTime(int gpsMinTime) {
         this.gpsMinTime = gpsMinTime;
     }
 
@@ -47,7 +47,7 @@ public class MyProperties {
         return gpsMinDist;
     }
 
-    public void setGpsMinDist(float gpsMinDist) {
+    private void setGpsMinDist(float gpsMinDist) {
         this.gpsMinDist = gpsMinDist;
     }
 
@@ -55,7 +55,7 @@ public class MyProperties {
         return netMinTime;
     }
 
-    public void setNetMinTime(int netMinTime) {
+    private void setNetMinTime(int netMinTime) {
         this.netMinTime = netMinTime;
     }
 
@@ -63,7 +63,7 @@ public class MyProperties {
         return netMinDist;
     }
 
-    public void setNetMinDist(float netMinDist) {
+    private void setNetMinDist(float netMinDist) {
         this.netMinDist = netMinDist;
     }
 }

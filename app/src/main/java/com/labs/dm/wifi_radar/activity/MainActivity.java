@@ -48,15 +48,15 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     private ListView lv;
     private ToggleButton tgl;
     private List<ScanResult> results;
-    private Set<String> ssid = new HashSet<>();
-    private List<Map<String, String>> list = new ArrayList();
+    private final Set<String> ssid = new HashSet<>();
+    private final List<Map<String, String>> list = new ArrayList();
     private SimpleAdapter adapter;
     private BroadcastReceiver broadcastReceiver;
     private NotificationManager notificationManager;
     private Runnable runnableCode;
     private LocationManager locationManager;
     private DBManager db;
-    private Map<String, Position> map = new HashMap<>();
+    private final Map<String, Position> map = new HashMap<>();
     private MyProperties props;
     private Location location;
 
