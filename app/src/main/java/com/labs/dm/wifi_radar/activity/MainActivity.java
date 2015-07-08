@@ -1,10 +1,12 @@
 package com.labs.dm.wifi_radar.activity;
 
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
@@ -14,6 +16,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -79,62 +82,12 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         tgl = (ToggleButton) findViewById(R.id.toggleButton);
         tgl.setOnClickListener(this);
         lv = (ListView) findViewById(R.id.listView);
-        wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        if (!wifi.isWifiEnabled()) {
-            Toast.makeText(getApplicationContext(), "Wifi is disabled. Switching on...", Toast.LENGTH_LONG).show();
-            wifi.setWifiEnabled(true);
-            switchedOnWifi = true;
-        }
+        initDevices();
+        wifi.startScan();
+
         this.adapter = new SimpleAdapter(this, list, R.layout.row, new String[]{"ssid", "info", "other"}, new int[]{R.id.ssid, R.id.info, R.id.other});
         lv.setAdapter(this.adapter);
-        wifi.startScan();
-        broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context c, Intent intent) {
-                results = wifi.getScanResults();
-                if (results == null) {
-                    return;
-                }
-
-                list.clear();
-
-                Collections.sort(results, new Comparator<ScanResult>() {
-                    @Override
-                    public int compare(ScanResult lhs, ScanResult rhs) {
-                        return rhs.level - lhs.level;
-                    }
-                });
-
-                for (ScanResult result : results) {
-                    Map<String, String> item = new HashMap();
-                    item.put("ssid", result.SSID);
-                    item.put("info", WifiManager.calculateSignalLevel(result.level, 100) + "%, ch" + String.valueOf(Utils.toChannel(result.frequency)));
-                    item.put("other", result.capabilities);
-                    item.put("bssid", result.BSSID);
-                    list.add(item);
-                    ssid.add(result.BSSID);
-
-                    Location location = getLastBestLocation();
-
-                    Position current = new Position(location.getLatitude(), location.getLongitude());
-
-                    if (map.containsKey(result.BSSID)) {
-                        Position pos = map.get(result.BSSID);
-                        if (Math.abs(Utils.calculateDistance(current, pos)) > 1.0d) {
-                            addSignalItem(result, location, current);
-                        }
-                    } else {
-                        addSignalItem(result, location, current);
-                    }
-
-                }
-                setTitle("Found " + list.size() + "/" + ssid.size());
-                notification(getTitle());
-                adapter.notifyDataSetChanged();
-            }
-
-
-        };
+        buildBroadcastReceiver();
 
         runnableCode = new Runnable() {
             @Override
@@ -162,10 +115,102 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, props.getGpsMinTime(), props.getGpsMinDist(), this);
     }
 
+    private void buildBroadcastReceiver() {
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context c, Intent intent) {
+                results = wifi.getScanResults();
+                if (results == null) {
+                    return;
+                }
+
+                list.clear();
+
+                Collections.sort(results, new Comparator<ScanResult>() {
+                    @Override
+                    public int compare(ScanResult lhs, ScanResult rhs) {
+                        return rhs.level - lhs.level;
+                    }
+                });
+
+                for (ScanResult result : results) {
+                    Map<String, String> item = new HashMap();
+                    item.put("ssid", result.SSID);
+                    item.put("info", WifiManager.calculateSignalLevel(result.level, 100) + "%, ch" + String.valueOf(Utils.toChannel(result.frequency)));
+                    item.put("other", result.capabilities);
+                    item.put("bssid", result.BSSID);
+                    list.add(item);
+                    ssid.add(result.BSSID);
+
+                    if (location == null || location.getAccuracy() > 100) {
+                        //db.addNetwork(result.SSID, result.BSSID, Utils.toChannel(result.frequency), result.capabilities);
+                        continue;
+                    }
+
+                    Position current = new Position(location.getLatitude(), location.getLongitude());
+
+                    if (map.containsKey(result.BSSID)) {
+                        Position pos = map.get(result.BSSID);
+                        if (Math.abs(Utils.calculateDistance(current, pos)) > props.getSampleDistance()) {
+                            addSignalItem(result, location, current);
+                        }
+                    } else {
+                        addSignalItem(result, location, current);
+                    }
+
+                }
+                setTitle("Found " + list.size() + "/" + ssid.size());
+                notification(getTitle());
+                adapter.notifyDataSetChanged();
+            }
+
+
+        };
+    }
+
+    private void initDevices() {
+        wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        if (!wifi.isWifiEnabled()) {
+            Toast.makeText(getApplicationContext(), "Wifi is disabled. Switching on...", Toast.LENGTH_LONG).show();
+            wifi.setWifiEnabled(true);
+            switchedOnWifi = true;
+        }
+
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            v.vibrate(10);
+            showGPSDisabledAlertToUser();
+        }
+    }
+
     Notification notification;
     PendingIntent contentIntent;
     CharSequence contentTitle = "Wifi Radar";
     CharSequence contentText;
+
+    private void showGPSDisabledAlertToUser() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setMessage("GPS is disabled in your device. Would you like to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Goto Settings Page To Enable GPS",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                Intent callGPSSettingIntent = new Intent(
+                                        android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                startActivity(callGPSSettingIntent);
+                            }
+                        });
+        alertDialogBuilder.setNegativeButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert = alertDialogBuilder.create();
+        alert.show();
+    }
 
     private void notification(int icon, CharSequence tickerText, long when) {
         notification = new Notification(icon, tickerText, when);
@@ -282,6 +327,24 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     public void onLocationChanged(Location location) {
         this.location = location;
         System.out.println("GPS: Location Changed" + location);
+        Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location locationNet = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+        long gpsTime = 0;
+        if (locationGPS != null) {
+            gpsTime = locationGPS.getTime();
+        }
+
+        long networkTime = 0;
+
+        if (locationNet != null) {
+            networkTime = locationNet.getTime();
+        }
+        if ((networkTime - gpsTime) > 60000) {
+            this.location = locationNet;
+        } else {
+            this.location = locationGPS;
+        }
     }
 
     @Override

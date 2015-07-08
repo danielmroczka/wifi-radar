@@ -4,30 +4,36 @@
         android:defaultValue="5"
         android:inputType="number"
         android:key="scan.interval"
-        android:summary="Please provide scan interval in seconds"
+        android:summary="Please provide scan interval [seconds]"
         android:title="Scan Interval"></EditTextPreference>
     <EditTextPreference
         android:defaultValue="1"
         android:inputType="number"
         android:key="gps.minTime"
-        android:summary="Please provide GPS minTime"
+        android:summary="Please provide GPS minTime [seconds]"
         android:title="GPS Min Time"></EditTextPreference>
     <EditTextPreference
-        android:defaultValue="1"
+        android:defaultValue="1.0"
         android:inputType="numberDecimal"
         android:key="gps.minDist"
-        android:summary="Please provide GPS minTime"
+        android:summary="Please provide GPS minDistance [meter]"
         android:title="GPS Min Distance"></EditTextPreference>
     <EditTextPreference
         android:defaultValue="30"
         android:inputType="number"
         android:key="net.minTime"
-        android:summary="Please provide Network minTime"
+        android:summary="Please provide Network minTime [seconds]"
         android:title="Network Min Time"></EditTextPreference>
     <EditTextPreference
-        android:defaultValue="10"
+        android:defaultValue="10.0"
         android:inputType="numberDecimal"
         android:key="net.minDist"
-        android:summary="Please provide Network minDistance"
+        android:summary="Please provide Network minDistance [meter]"
         android:title="Network Min Distance"></EditTextPreference>
+    <EditTextPreference
+        android:defaultValue="1.0"
+        android:inputType="numberDecimal"
+        android:key="sample.distance"
+        android:summary="Please provide Distance between samples [meter]"
+        android:title="Sample Distance"></EditTextPreference>
 </PreferenceScreen>
