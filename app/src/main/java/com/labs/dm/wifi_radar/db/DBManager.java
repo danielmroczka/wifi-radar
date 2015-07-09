@@ -19,9 +19,10 @@ public class DBManager extends SQLiteOpenHelper {
 
     private final SQLiteDatabase writableDatabase;
     private final SQLiteDatabase readableDatabase;
+    public final static String DB_NAME = "wifi3.db";
 
     public DBManager(Context context) {
-        super(context, "wifi3.db", null, 1);
+        super(context, DB_NAME, null, 1);
         writableDatabase = getWritableDatabase();
         readableDatabase = getReadableDatabase();
     }

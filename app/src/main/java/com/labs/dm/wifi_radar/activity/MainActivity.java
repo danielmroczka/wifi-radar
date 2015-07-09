@@ -64,6 +64,10 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     private MyProperties props;
     private Location location;
     private boolean switchedOnWifi;
+    private Notification notification;
+    private PendingIntent contentIntent;
+    private CharSequence contentTitle = "Wifi Radar";
+    private CharSequence contentText;
 
     @Override
     protected void onDestroy() {
@@ -84,7 +88,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         lv = (ListView) findViewById(R.id.listView);
         initDevices();
         wifi.startScan();
-
         this.adapter = new SimpleAdapter(this, list, R.layout.row, new String[]{"ssid", "info", "other"}, new int[]{R.id.ssid, R.id.info, R.id.other});
         lv.setAdapter(this.adapter);
         buildBroadcastReceiver();
@@ -113,6 +116,22 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, props.getNetMinTime(), props.getNetMinDist(), this);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, props.getGpsMinTime(), props.getGpsMinDist(), this);
+
+        buildStatusReceiver();
+
+    }
+
+    private void buildStatusReceiver() {
+        BroadcastReceiver br = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                System.out.println("GOT IT!" + intent.getAction() + " " + intent.hasExtra("enabled"));
+            }
+        };
+
+        IntentFilter filter = new IntentFilter("android.location.GPS_ENABLED_CHANGE");
+        filter.addAction("android.location.GPS_FIX_CHANGE");
+        registerReceiver(br, filter);
     }
 
     private void buildBroadcastReceiver() {
@@ -180,15 +199,10 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-            v.vibrate(10);
+            v.vibrate(100);
             showGPSDisabledAlertToUser();
         }
     }
-
-    Notification notification;
-    PendingIntent contentIntent;
-    CharSequence contentTitle = "Wifi Radar";
-    CharSequence contentText;
 
     private void showGPSDisabledAlertToUser() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
@@ -246,7 +260,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
             id = db.addNetwork(result.SSID, result.BSSID, Utils.toChannel(result.frequency), result.capabilities);
         }
 
-
         List<Position> pos = db.getPositions(id);
         map.put(result.BSSID, current);
 
@@ -274,6 +287,14 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivityForResult(intent, SETTINGS_CODE);
                 return true;
+            case R.id.action_info:
+                Intent intent2 = new Intent(this, InfoActivity.class);
+                startActivity(intent2);
+                return true;
+            case R.id.action_export:
+                Intent intent3 = new Intent(this, ExportActivity.class);
+                startActivity(intent3);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -299,28 +320,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
-    }
-
-
-    private Location getLastBestLocation() {
-        Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        Location locationNet = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-        long gpsTime = 0;
-        if (locationGPS != null) {
-            gpsTime = locationGPS.getTime();
-        }
-
-        long networkTime = 0;
-
-        if (locationNet != null) {
-            networkTime = locationNet.getTime();
-        }
-        if ((networkTime - gpsTime) > 60000) {
-            return locationNet;
-        } else {
-            return locationGPS;
-        }
     }
 
     @Override
