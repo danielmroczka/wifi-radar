@@ -1,4 +1,7 @@
 language: android
 script: gradle wrapper
+android:
+  components:
+    - build-tools-21.1.2
 before_install:
  - chmod +x gradlew
