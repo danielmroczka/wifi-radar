@@ -1,13 +1,13 @@
 package com.labs.dm.wifi_radar.activity;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.labs.dm.wifi_radar.R;
 
-public class InfoActivity extends ActionBarActivity {
+public class InfoActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

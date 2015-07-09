@@ -1,10 +1,10 @@
 package com.labs.dm.wifi_radar.activity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,7 +19,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
 
-public class ExportActivity extends ActionBarActivity implements View.OnClickListener {
+public class ExportActivity extends Activity implements View.OnClickListener {
 
     private final String FILENAME = DBManager.DB_NAME;
     private final int CODE = 123;

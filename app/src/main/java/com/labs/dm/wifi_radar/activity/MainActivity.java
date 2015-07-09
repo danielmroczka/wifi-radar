@@ -1,5 +1,6 @@
 package com.labs.dm.wifi_radar.activity;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -18,7 +19,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,6 +28,7 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.labs.dm.wifi_radar.MainAdpter;
 import com.labs.dm.wifi_radar.R;
 import com.labs.dm.wifi_radar.db.DBManager;
 import com.labs.dm.wifi_radar.pojo.MyProperties;
@@ -44,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class MainActivity extends ActionBarActivity implements View.OnClickListener, LocationListener {
+public class MainActivity extends Activity implements View.OnClickListener, LocationListener {
     private static final int SETTINGS_CODE = 1;
     private static final int NOTIFICATION_EX = 1;
     private final Handler handler = new Handler();
@@ -88,7 +89,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         lv = (ListView) findViewById(R.id.listView);
         initDevices();
         wifi.startScan();
-        this.adapter = new SimpleAdapter(this, list, R.layout.row, new String[]{"ssid", "info", "other"}, new int[]{R.id.ssid, R.id.info, R.id.other});
+        adapter = new MainAdpter(this, list, R.layout.row, new String[]{"ssid", "info", "other"}, new int[]{R.id.ssid, R.id.info, R.id.other});
         lv.setAdapter(this.adapter);
         buildBroadcastReceiver();
 
