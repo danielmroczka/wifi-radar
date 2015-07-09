@@ -70,11 +70,13 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
     private CharSequence contentTitle = "Wifi Radar";
     private CharSequence contentText;
 
+    private static final String TAG = "MainActivity";
+
     @Override
     protected void onDestroy() {
         if (switchedOnWifi) {
             wifi.setWifiEnabled(false);
-            Log.i("", "Switch off WIFI");
+            Log.i(TAG, "Switch off WIFI");
         }
         super.onDestroy();
     }
@@ -126,7 +128,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
         BroadcastReceiver br = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                System.out.println("GOT IT!" + intent.getAction() + " " + intent.hasExtra("enabled"));
+                Log.i(TAG, "GOT IT!" + intent.getAction() + " " + intent.hasExtra("enabled"));
             }
         };
 
@@ -285,16 +287,16 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
-                Intent intent = new Intent(this, SettingsActivity.class);
-                startActivityForResult(intent, SETTINGS_CODE);
+                startActivityForResult(new Intent(this, SettingsActivity.class), SETTINGS_CODE);
                 return true;
             case R.id.action_info:
-                Intent intent2 = new Intent(this, InfoActivity.class);
-                startActivity(intent2);
+                startActivity(new Intent(this, InfoActivity.class));
                 return true;
             case R.id.action_export:
-                Intent intent3 = new Intent(this, ExportActivity.class);
-                startActivity(intent3);
+                startActivity(new Intent(this, ExportActivity.class));
+                return true;
+            case R.id.action_admin:
+                startActivity(new Intent(this, AdminActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -326,7 +328,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
     @Override
     public void onLocationChanged(Location location) {
         this.location = location;
-        System.out.println("GPS: Location Changed" + location);
+        Log.i(TAG, "GPS: Location Changed" + location);
         Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         Location locationNet = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 

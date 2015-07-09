@@ -21,11 +21,16 @@ public class DBManager extends SQLiteOpenHelper {
     private final SQLiteDatabase readableDatabase;
     public final static String DB_NAME = "wifi3.db";
 
-    public DBManager(Context context) {
-        super(context, DB_NAME, null, 1);
+    public DBManager(Context context, String name) {
+        super(context, name, null, 1);
         writableDatabase = getWritableDatabase();
         readableDatabase = getReadableDatabase();
     }
+
+    public DBManager(Context context) {
+        this(context, DB_NAME);
+    }
+
 
     @Override
     public synchronized void close() {

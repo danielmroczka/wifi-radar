@@ -9,4 +9,6 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_export">Export</string>
+    <string name="title_activity_admin">AdminActivity</string>
+    <string name="action_admin">Admin</string>
 </resources>
