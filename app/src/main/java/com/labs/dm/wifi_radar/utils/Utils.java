@@ -1,5 +1,7 @@
 package com.labs.dm.wifi_radar.utils;
 
+import android.location.Location;
+
 import com.labs.dm.wifi_radar.pojo.Position;
 
 /**
@@ -44,4 +46,19 @@ public class Utils {
         }
     }
 
+    public static String getLatitudeSign(Location location) {
+        if (location.getLatitude() >= 0) {
+            return "N";
+        } else {
+            return "S";
+        }
+    }
+
+    public static String getLongitudeSign(Location location) {
+        if (location.getLongitude() >= 0) {
+            return "E";
+        } else {
+            return "W";
+        }
+    }
 }

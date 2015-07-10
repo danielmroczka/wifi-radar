@@ -5,6 +5,7 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,7 +18,7 @@ import com.labs.dm.wifi_radar.utils.Utils;
 
 import java.util.Date;
 
-public class AdminActivity extends Activity implements View.OnClickListener {
+public class AdminActivity extends Activity implements View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     private Button button;
     private TextView textView;
@@ -33,6 +34,7 @@ public class AdminActivity extends Activity implements View.OnClickListener {
         textView.clearComposingText();
         button.setOnClickListener(this);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        onClick(null);
     }
 
     @Override
@@ -54,34 +56,32 @@ public class AdminActivity extends Activity implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
+        StringBuilder text = new StringBuilder();
+        for (String provider : locationManager.getAllProviders()) {
+
+            Location location = locationManager.getLastKnownLocation(provider);
+
+            text.append(provider.toUpperCase()).append("\n");
+
+            text.append(String.format("%.6f", location.getLongitude())).append(Utils.getLongitudeSign(location)).append(" ");
+            text.append(String.format("%.6f", location.getLatitude())).append(Utils.getLatitudeSign(location)).append("\n");
+            text.append("time: ").append(new Date(location.getTime())).append("\n");
+            text.append("acc: ").append(location.getAccuracy()).append("\n\n");
+        }
+
         Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         Location locationNet = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
-        StringBuilder text = new StringBuilder();
-
-        text.append("GPS:").append("\n");
-        text.append(locationGPS.getLongitude()).append(":");
-        text.append(locationGPS.getLatitude()).append("\n");
-        text.append("time: ").append(new Date(locationGPS.getTime())).append("\n");
-        text.append("acc: ").append(locationGPS.getAccuracy()).append("\n\n");
-
-        text.append("Network:").append("\n");
-        text.append(locationNet.getLongitude()).append(":");
-        text.append(locationNet.getLatitude()).append("\n");
-        text.append("time: ").append(new Date(locationNet.getTime())).append("\n");
-        text.append("acc: ").append(locationNet.getAccuracy()).append("\n");
-
-        text.append("\n");
         text.append("Distance GPS vs Network [m]: ");
-        text.append(Utils.calculateDistance(new Position(locationGPS.getLongitude(), locationGPS.getLatitude()), new Position(locationNet.getLongitude(), locationNet.getLatitude()))).append("\n");
+        text.append(String.format("%.3f", Utils.calculateDistance(new Position(locationGPS.getLongitude(), locationGPS.getLatitude()), new Position(locationNet.getLongitude(), locationNet.getLatitude())))).append("\n");
         text.append("Difference GPS vs Network [s]: ");
         text.append((locationGPS.getTime() - locationNet.getTime()) / 1000f).append("\n");
 
-        text.append("Providers").append("\n");
-        for (String provider : locationManager.getAllProviders()) {
-            text.append(provider).append(" status=").append(locationManager.isProviderEnabled(provider)).append("\n");
-        }
-
         textView.setText(text.toString());
+    }
+
+    @Override
+    public void onRefresh() {
+        onClick(null);
     }
 }
