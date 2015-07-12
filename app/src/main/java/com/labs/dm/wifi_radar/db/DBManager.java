@@ -19,7 +19,7 @@ public class DBManager extends SQLiteOpenHelper {
 
     private final SQLiteDatabase writableDatabase;
     private final SQLiteDatabase readableDatabase;
-    public final static String DB_NAME = "wifi3.db";
+    public final static String DB_NAME = "wifi4.db";
 
     public DBManager(Context context, String name) {
         super(context, name, null, 1);
@@ -40,9 +40,13 @@ public class DBManager extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table network(id INTEGER PRIMARY KEY, ssid TEXT, bssid TEXT UNIQUE, channel INTEGER, type TEXT, added DATETIME CURRENT_TIMESTAMP )");
-        db.execSQL("create table signal(id INTEGER PRIMARY KEY, id_network INTEGER, level INTEGER, longitude DOUB, latitude DOUB, accuracy NUMERIC, timestamp NUMERIC, FOREIGN KEY(id_network) REFERENCES network(id))");
-        db.execSQL("create unique index network_bssid on network(bssid)");
+        // CREATE TABLE
+        db.execSQL("create table NETWORK(id INTEGER PRIMARY KEY, ssid TEXT, bssid TEXT UNIQUE NOT NULL, channel INTEGER, type TEXT, added DATETIME DEFAULT CURRENT_TIMESTAMP )");
+        db.execSQL("create table SIGNAL(id_network INTEGER, level INTEGER, longitude DOUB, latitude DOUB, accuracy INTEGER, timestamp INTEGER, FOREIGN KEY(id_network) REFERENCES network(id))");
+        // CREATE INDEX
+        db.execSQL("create unique index NETWORK_BSSID on network(bssid)");
+        db.execSQL("create index SIGNAL_ID_NETWORK on signal(id_network)");
+        // CREATE VIEW
         db.execSQL("create view VNETWORKS as select n.ssid, max(s.level) from network n, signal s where n.id = s.id_network group by n.ssid");
     }
 

@@ -267,7 +267,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
         map.put(result.BSSID, current);
 
         for (Position p : pos) {
-            if (Utils.calculateDistance(p, current) < 5.0d) {
+            if (Utils.calculateDistance(p, current) < props.getSampleDistance()) {
                 return;
             }
         }

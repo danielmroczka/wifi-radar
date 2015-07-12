@@ -8,11 +8,10 @@
         android:text="SSID"
         android:id="@+id/ssid"
         android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
         android:textStyle="bold"
         android:layout_toLeftOf="@+id/info"
-        android:layout_toStartOf="@+id/info" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="wrap_content"
