@@ -7,6 +7,16 @@
     tools:context=".MainActivity"
     android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
 
+    <ToggleButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scan"
+        android:id="@+id/toggleButton"
+        android:checked="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/listView"
+        android:layout_alignEnd="@+id/listView" />
+
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -15,15 +25,29 @@
         android:layout_alignParentStart="true"
         android:layout_below="@+id/toggleButton" />
 
-    <ToggleButton
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Scan"
-        android:id="@+id/toggleButton"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="mainHeader"
+        android:id="@+id/mainHeaderTextView"
+        android:layout_alignTop="@+id/toggleButton"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:checked="true"
-        android:layout_alignRight="@+id/listView" />
+        android:layout_toLeftOf="@+id/toggleButton"
+        android:layout_toStartOf="@+id/toggleButton" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="otherHeader"
+        android:id="@+id/otherHeaderTextView"
+        android:layout_alignBottom="@+id/toggleButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@+id/toggleButton"
+        android:layout_toStartOf="@+id/toggleButton"
+        android:layout_below="@+id/mainHeaderTextView" />
 
 </RelativeLayout>

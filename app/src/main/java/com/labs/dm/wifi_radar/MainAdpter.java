@@ -1,9 +1,11 @@
 package com.labs.dm.wifi_radar;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 
 import java.util.List;
 import java.util.Map;
@@ -21,11 +23,20 @@ public class MainAdpter extends SimpleAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         View view = super.getView(position, convertView, parent);
 
+        TextView ssid = (TextView) view.findViewById(R.id.ssid);
+        TextView info = (TextView) view.findViewById(R.id.info);
+        TextView other = (TextView) view.findViewById(R.id.other);
+        TextView status = (TextView) view.findViewById(R.id.status);
+
         Map<String, String> map = (Map<String, String>) getItem(position);
         String cap = map.get("other");
         if (cap == null || cap.isEmpty() || cap.equals("[ESS]")) {
-            view.setBackgroundColor(127);
+            ssid.setTextColor(Color.GREEN);
+        } else {
         }
+
+        status.setText("");
+        //other.setText("");
         return view;
     }
 }

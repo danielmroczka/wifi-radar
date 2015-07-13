@@ -25,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -49,9 +50,14 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
     private static final int SETTINGS_CODE = 1;
     private static final int NOTIFICATION_EX = 1;
     private final Handler handler = new Handler();
+
     private WifiManager wifi;
+
     private ListView lv;
     private ToggleButton tgl;
+    private TextView headerTextView;
+    private TextView otherTextView;
+
     private List<ScanResult> results;
     private final Set<String> ssid = new HashSet<>();
     private final List<Map<String, String>> list = new ArrayList();
@@ -61,7 +67,6 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
     private Runnable runnableCode;
     private LocationManager locationManager;
     private DBManager db;
-    private final Map<String, Position> map = new HashMap<>();
     private MyProperties props;
     private Location location;
     private boolean switchedOnWifi;
@@ -86,9 +91,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        tgl = (ToggleButton) findViewById(R.id.toggleButton);
-        tgl.setOnClickListener(this);
-        lv = (ListView) findViewById(R.id.listView);
+        initComponents();
         initDevices();
         wifi.startScan();
         adapter = new MainAdpter(this, list, R.layout.row, new String[]{"ssid", "info", "other"}, new int[]{R.id.ssid, R.id.info, R.id.other});
@@ -122,6 +125,16 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
 
         buildStatusReceiver();
 
+    }
+
+    private void initComponents() {
+        tgl = (ToggleButton) findViewById(R.id.toggleButton);
+        tgl.setOnClickListener(this);
+        lv = (ListView) findViewById(R.id.listView);
+        headerTextView = (TextView) findViewById(R.id.mainHeaderTextView);
+        otherTextView = (TextView) findViewById(R.id.otherHeaderTextView);
+        headerTextView.setText("");
+        otherTextView.setText("");
     }
 
     private void buildStatusReceiver() {
@@ -158,31 +171,24 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
                 for (ScanResult result : results) {
                     Map<String, String> item = new HashMap();
                     item.put("ssid", result.SSID);
-                    item.put("info", WifiManager.calculateSignalLevel(result.level, 100) + "%, ch" + String.valueOf(Utils.toChannel(result.frequency)));
+                    item.put("info", WifiManager.calculateSignalLevel(result.level, 100) + "%, " + String.valueOf(Utils.toChannel(result.frequency)));
                     item.put("other", result.capabilities);
                     item.put("bssid", result.BSSID);
                     list.add(item);
                     ssid.add(result.BSSID);
 
                     if (location == null || location.getAccuracy() > 100) {
-                        //db.addNetwork(result.SSID, result.BSSID, Utils.toChannel(result.frequency), result.capabilities);
                         continue;
                     }
 
                     Position current = new Position(location.getLatitude(), location.getLongitude());
 
-                    if (map.containsKey(result.BSSID)) {
-                        Position pos = map.get(result.BSSID);
-                        if (Math.abs(Utils.calculateDistance(current, pos)) > props.getSampleDistance()) {
                             addSignalItem(result, location, current);
-                        }
-                    } else {
-                        addSignalItem(result, location, current);
-                    }
 
                 }
-                setTitle("Found " + list.size() + "/" + ssid.size());
-                notification(getTitle());
+                String headerText = "Found " + list.size() + "/" + ssid.size();
+                headerTextView.setText(headerText);
+                notification(headerText);
                 adapter.notifyDataSetChanged();
             }
 
@@ -264,7 +270,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
         }
 
         List<Position> pos = db.getPositions(id);
-        map.put(result.BSSID, current);
+        //map.put(result.BSSID, current);
 
         for (Position p : pos) {
             if (Utils.calculateDistance(p, current) < props.getSampleDistance()) {
