@@ -17,21 +17,15 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getFragmentManager().beginTransaction().replace(android.R.id.content, new MyPreferenceFragment()).commit();
-
-        //SharedPreferences sharedPref = getPreferenceScreen().getSharedPreferences();
-        //sharedPref.registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        //Get the current summary
         pref = findPreference(key);
         summaryStr = (String) pref.getSummary();
 
-        //Get the user input data
         prefixStr = sharedPreferences.getString(key, "");
 
-        //Update the summary with user input data
         pref.setSummary(summaryStr.concat(": [").concat(prefixStr).concat("]"));
     }
 

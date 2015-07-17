@@ -95,7 +95,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
         initDevices();
         wifi.startScan();
         adapter = new MainAdpter(this, list, R.layout.row, new String[]{"ssid", "info", "other"}, new int[]{R.id.ssid, R.id.info, R.id.other});
-        lv.setAdapter(this.adapter);
+        lv.setAdapter(adapter);
         buildBroadcastReceiver();
 
         runnableCode = new Runnable() {
