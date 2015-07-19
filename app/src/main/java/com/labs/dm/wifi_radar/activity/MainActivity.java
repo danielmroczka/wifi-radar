@@ -29,7 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.labs.dm.wifi_radar.MainAdpter;
+import com.labs.dm.wifi_radar.MainAdapter;
 import com.labs.dm.wifi_radar.R;
 import com.labs.dm.wifi_radar.db.DBManager;
 import com.labs.dm.wifi_radar.pojo.MyProperties;
@@ -94,7 +94,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
         initComponents();
         initDevices();
         wifi.startScan();
-        adapter = new MainAdpter(this, list, R.layout.row, new String[]{"ssid", "info", "other"}, new int[]{R.id.ssid, R.id.info, R.id.other});
+        adapter = new MainAdapter(this, list, R.layout.row, new String[]{"ssid", "info", "other"}, new int[]{R.id.ssid, R.id.info, R.id.other});
         lv.setAdapter(adapter);
         buildBroadcastReceiver();
 

@@ -13,9 +13,9 @@ import java.util.Map;
 /**
  * Created by daniel on 2015-07-09.
  */
-public class MainAdpter extends SimpleAdapter {
+public class MainAdapter extends SimpleAdapter {
 
-    public MainAdpter(Context context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to) {
+    public MainAdapter(Context context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to) {
         super(context, data, resource, from, to);
     }
 
@@ -30,9 +30,11 @@ public class MainAdpter extends SimpleAdapter {
 
         Map<String, String> map = (Map<String, String>) getItem(position);
         String cap = map.get("other");
+
         if (cap == null || cap.isEmpty() || cap.equals("[ESS]")) {
             ssid.setTextColor(Color.GREEN);
         } else {
+            ssid.setTextColor(ssid.getTextColors().getDefaultColor());
         }
 
         status.setText("");
