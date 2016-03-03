@@ -130,6 +130,7 @@ public class DBManager extends SQLiteOpenHelper {
                 }
             }
         } finally {
+            assert cursor != null;
             cursor.close();
         }
         return list;

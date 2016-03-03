@@ -183,7 +183,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
 
                     Position current = new Position(location.getLatitude(), location.getLongitude());
 
-                            addSignalItem(result, location, current);
+                    addSignalItem(result, location, current);
 
                 }
                 String headerText = "Found " + list.size() + "/" + ssid.size();
