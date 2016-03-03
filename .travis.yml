@@ -1,9 +1,14 @@
 language: android
-jdk: oraclejdk7
 install: true
-script: gradle assembleDebug
+script: gradle clean assembleDebug
 android:
   components:
-    - build-tools-21.1.1
-    - android-21
+    - build-tools-22.0.1
+    - android-22
     - extra
+before_install:
+  # Gradle
+  - wget http://services.gradle.org/distributions/gradle-2.10-bin.zip
+  - unzip gradle-2.10-bin.zip
+  - export GRADLE_HOME=$PWD/gradle-2.10
+  - export PATH=$GRADLE_HOME/bin:$PATH
