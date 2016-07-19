@@ -5,11 +5,8 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.*;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -63,6 +60,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
     private final List<Map<String, String>> list = new ArrayList();
     private SimpleAdapter adapter;
     private BroadcastReceiver broadcastReceiver;
+    private BroadcastReceiver statusReceiver;
     private NotificationManager notificationManager;
     private Runnable runnableCode;
     private LocationManager locationManager;
@@ -79,6 +77,9 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
 
     @Override
     protected void onDestroy() {
+        unregisterReceiver(broadcastReceiver);
+        unregisterReceiver(statusReceiver);
+        notificationManager.cancelAll();
         if (switchedOnWifi) {
             wifi.setWifiEnabled(false);
             Log.i(TAG, "Switch off WIFI");
@@ -138,7 +139,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
     }
 
     private void buildStatusReceiver() {
-        BroadcastReceiver br = new BroadcastReceiver() {
+        statusReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.i(TAG, "GOT IT!" + intent.getAction() + " " + intent.hasExtra("enabled"));
@@ -147,7 +148,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
 
         IntentFilter filter = new IntentFilter("android.location.GPS_ENABLED_CHANGE");
         filter.addAction("android.location.GPS_FIX_CHANGE");
-        registerReceiver(br, filter);
+        registerReceiver(statusReceiver, filter);
     }
 
     private void buildBroadcastReceiver() {
@@ -191,8 +192,6 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
                 notification(headerText);
                 adapter.notifyDataSetChanged();
             }
-
-
         };
     }
 
@@ -303,6 +302,9 @@ public class MainActivity extends Activity implements View.OnClickListener, Loca
                 return true;
             case R.id.action_admin:
                 startActivity(new Intent(this, AdminActivity.class));
+                return true;
+            case R.id.action_exit:
+                finish();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
